@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		hasTransitionedToMain = true;
 
 		if (bgMusic) {
-			bgMusic.volume = 0.4;
+			bgMusic.volume = 0.75;
 			bgMusic.play().catch(e => console.log("BG music autoplay blocked:", e));
 			muteBtn.classList.add('active');
 		}
