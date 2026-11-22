@@ -54,7 +54,13 @@
 			class="scene active"
 			aria-label="Invitation Reveal"
 		>
-			<img src="yellang.jpg" alt="Yella" class="yellang-img" />
+			<img
+				src="yellang.jpg"
+				alt="Yella"
+				class="yellang-img"
+				decoding="async"
+				fetchpriority="high"
+			/>
 
 			<div class="invite-overlay">
 				<!-- The Speech Bubble -->
@@ -76,7 +82,7 @@
 
 		<!-- SCENE 1: THE INTERACTIVE REVEAL (Slide + Curtains + Video) -->
 		<section id="scene-start" class="scene" aria-label="Start Screen">
-			<video id="intro-video" playsinline preload="auto">
+			<video id="intro-video" playsinline preload="none">
 				<source src="gabby-final-3.mp4" type="video/mp4" />
 			</video>
 

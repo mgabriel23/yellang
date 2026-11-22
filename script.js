@@ -44,11 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	const initScrollAnimations = () => {
 		const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
-		const observer = new IntersectionObserver((entries, observer) => {
+		const observer = new IntersectionObserver((entries, obs) => {
 			entries.forEach(entry => {
 				if (entry.isIntersecting) {
 					entry.target.classList.add('is-visible');
-					observer.unobserve(entry.target);
+					obs.unobserve(entry.target);
 				}
 			});
 		}, observerOptions);
@@ -60,6 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	// 3. FLOW ACT 1 -> ACT 2 (Invite -> Slider)
 	// ==========================================
 	document.getElementById('open-invite-btn').addEventListener('click', () => {
+		if (video && video.preload === 'none') {
+			video.preload = 'metadata';
+			video.load();
+		}
 		switchScene(scenes.invite, scenes.start);
 	});
 
@@ -145,33 +149,36 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	// ==========================================
-	// 5. DOLLHOUSE CONFETTI BURST
+	// 5. DOLLHOUSE CONFETTI BURST (Lightweight)
 	// ==========================================
 	const triggerSuperConfetti = () => {
+		if (typeof confetti !== 'function') return;
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
 		if (typeof confetti.reset === 'function') {
 			confetti.reset();
 		}
 
+		const palette = ['#ff69b4', '#ffd13b', '#2ec4b6', '#9b5de5', '#ffffff'];
+
 		confetti({
-			particleCount: 80,
-			spread: 100,
+			particleCount: 45,
+			spread: 90,
 			origin: { y: 0.6 },
 			zIndex: 9999,
-			colors: ['#ff69b4', '#ffd13b', '#2ec4b6', '#9b5de5', '#ffffff'],
+			colors: palette,
 			disableForReducedMotion: true,
-			ticks: 40
+			ticks: 35
 		});
 
-		const duration = 2000;
+		const duration = 1200;
 		const animationEnd = Date.now() + duration;
 		const defaults = {
-			startVelocity: 25,
+			startVelocity: 22,
 			spread: 360,
-			ticks: 40,
+			ticks: 35,
 			zIndex: 9999,
-			colors: ['#ff69b4', '#ffd13b', '#2ec4b6', '#9b5de5', '#ffffff']
+			colors: palette
 		};
 
 		function randomInRange(min, max) {
@@ -182,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			const timeLeft = animationEnd - Date.now();
 			if (timeLeft <= 0) return;
 
-			const particleCount = 15 * (timeLeft / duration);
+			const particleCount = Math.max(4, Math.round(10 * (timeLeft / duration)));
 
 			confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
 			confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
@@ -203,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		hasTransitionedToMain = true;
 
 		if (bgMusic) {
-			bgMusic.volume = 0.75;
+			bgMusic.volume = 0.4;
 			bgMusic.play().catch(e => console.log("BG music autoplay blocked:", e));
 			muteBtn.classList.add('active');
 		}
@@ -245,27 +252,20 @@ document.addEventListener('DOMContentLoaded', () => {
 				if (typeof confetti.reset === 'function') {
 					confetti.reset();
 				}
-			}, 3500);
+			}, 2500);
 		}, 200);
 	};
 
-	const monitorVideo = () => {
-		if (hasTransitionedToMain || video.paused || video.ended) return;
+	if (video) {
+		video.addEventListener('timeupdate', () => {
+			if (hasTransitionedToMain || !video.duration) return;
+			if (video.currentTime >= video.duration - 0.15) {
+				transitionToMain();
+			}
+		});
 
-		const cutTime = 0.1;
-
-		if (video.currentTime >= video.duration - cutTime) {
-			transitionToMain();
-		} else {
-			requestAnimationFrame(monitorVideo);
-		}
-	};
-
-	video.addEventListener('play', () => {
-		requestAnimationFrame(monitorVideo);
-	});
-
-	video.addEventListener('ended', transitionToMain);
+		video.addEventListener('ended', transitionToMain);
+	}
 
 	// --- MUTE BUTTON LOGIC ---
 	if (muteBtn) {
